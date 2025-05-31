@@ -135,10 +135,18 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.AI_env
+AI_env/
 
 # Spyder project settings
 .spyderproject
 .spyproject
+
+#models
+.pretrained_model_and_optimizer.pth
+pretrained_model_and_optimizer.pth
+.fine_tunned_model_and_optimizer.pth
+fine_tunned_model_and_optimizer.pth
 
 # Rope project settings
 .ropeproject
