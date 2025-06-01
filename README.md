@@ -1,6 +1,82 @@
-# Custom LLM Training Project
+# Custom LLM Training and Fine-tuning System
 
-This project focuses on training and fine-tuning custom language models using PyTorch library.
+This project provides a system for training, fine-tuning, and using custom language models. It supports both pre-training from scratch and fine-tuning of existing models.
+
+## Features
+
+- Pre-train models from scratch
+- Fine-tune existing pre-trained models
+- Use pre-trained or fine-tuned models for inference
+- Interactive text generation
+- Support for custom datasets
+
+## Dataset Formats
+
+### Fine-tuning Dataset Format
+
+The fine-tuning dataset should be in JSON format with the following structure:
+
+```json
+{
+    "instruction": "The task or instruction to be performed",
+    "input": "The input text or prompt",
+    "output": "The expected output or response"
+}
+```
+
+Example:
+```json
+{
+    "instruction": "Evaluate the following phrase by transforming it into the spelling given.",
+    "input": "freind --> friend",
+    "output": "The spelling of the given phrase \"freind\" is incorrect, the correct spelling is \"friend\"."
+}
+```
+
+### Pre-training Dataset Format
+
+For pre-training, you can use:
+- Plain text files (.txt)
+- Text data from URLs (e.g., Gutenberg books)
+
+## Usage
+
+1. Run the main script:
+```bash
+python main.py
+```
+
+2. Choose from the following options:
+   - Use pretrained model
+   - Use existing fine-tuned model
+   - Train a custom model from scratch
+   - Fine-tune an existing pretrained model
+
+3. Follow the prompts to:
+   - Enter model names
+   - Provide dataset paths/URLs
+   - Set training parameters (batch size, epochs)
+   - Interact with the model
+
+## Model Files
+
+The system uses the following file naming conventions:
+- Pre-trained models: `{model_name}_pretrained_model.pth`
+- Fine-tuned models: `instruct_{model_name}.pth`
+
+## Requirements
+
+- Python 3.x
+- PyTorch
+- tiktoken
+- CUDA (optional, for GPU acceleration)
+
+## Notes
+
+- Make sure your dataset follows the specified format
+- Model files should be in the current working directory
+- For fine-tuning, ensure you have a pre-trained model available
+- The system automatically handles device selection (CPU/GPU)
 
 ## Prerequisites
 
@@ -13,7 +89,7 @@ This project focuses on training and fine-tuning custom language models using Py
 1. Clone the repository:
 ```bash
 git clone https://github.com/RohitPawar001/Build_your_custom_LLM.git
-cd <repository-name>
+cd custom_llm
 ```
 
 2. Create and activate a virtual environment (recommended):
@@ -38,33 +114,9 @@ pip install -r requirements.txt
 .
 ├── requirements.txt
 ├── .gitignore
-├── fine_tunned_model_and_optimizer.pth  # Fine-tuned model weights
-└── pretrained_model_and_optimizer.pth   # Pretrained model weights
+├── instruct_{model_name}.pth  # Fine-tuned model weights
+└── {model_name}_pretrained_model.pth   # Pretrained model weights
 ```
-
-## Usage
-
-### Training a New Model
-
-1. Prepare your dataset in the required format
-2. Configure your training parameters
-3. Run the training script:
-```bash
-python main.py
-```
-
-### Fine-tuning an Existing Model
-
-1. Load a pretrained model
-2. Configure fine-tuning parameters
-3. Run the fine-tuning script:
-
-
-
-## Model Files
-
-- `pretrained_model_and_optimizer.pth`: Contains the pretrained model weights and optimizer state
-- `fine_tunned_model_and_optimizer.pth`: Contains the fine-tuned model weights and optimizer state
 
 ## Dependencies
 
