@@ -9,10 +9,21 @@ from .sft_utils import (format_input,
                         custom_collate_fn)
 
 
+"""
+    This file contains the implementation of the InstructionDataset and SFTDataloaders classes.
+    
+"""
+
+
 num_workers = 0
-batch_size = 2
+
 
 class InstructionDataset(Dataset):
+    """
+    This class implements the InstructionDataset.
+    It takes in the data, tokenizer, and device.
+    It then initializes the encoded texts.
+    """
     def __init__(self, data, tokenizer, device="cpu"):
         self.data = data
         self.tokenizer = tokenizer
@@ -41,18 +52,24 @@ class InstructionDataset(Dataset):
     
 
 class SFTDataloaders:
-    def __init__(self, train_data, val_data, test_data, tokenizer, device="cpu"):
+    """
+    This class implements the SFTDataloaders.
+    It takes in the train data, val data, test data, tokenizer, batch size, and device.
+    It then initializes the train, val, and test dataloaders.
+    """
+    def __init__(self, train_data, val_data, test_data, tokenizer, batch_size:int=2, device="cpu"):
         self.train_data = train_data
         self.val_data = val_data
         self.test_data = test_data
         self.tokenizer = tokenizer
+        self.batch_size = batch_size
         self.device = device
 
     def data_loaders(self):
         train_dataset = InstructionDataset(self.train_data, self.tokenizer, device=self.device)
         train_loader = DataLoader(
             train_dataset,
-            batch_size=batch_size,
+            batch_size=self.batch_size,
             collate_fn=custom_collate_fn,
             shuffle=True,
             drop_last=True,
@@ -62,7 +79,7 @@ class SFTDataloaders:
         val_dataset = InstructionDataset(self.val_data, self.tokenizer, device=self.device)
         val_dataloader = DataLoader(
             val_dataset,
-            batch_size=batch_size,
+            batch_size=self.batch_size,
             collate_fn=custom_collate_fn,
             shuffle=False,
             drop_last=False,
@@ -72,7 +89,7 @@ class SFTDataloaders:
         test_dataset = InstructionDataset(self.test_data, self.tokenizer, device=self.device)
         test_dataloader = DataLoader(
             test_dataset,
-            batch_size=batch_size,
+            batch_size=self.batch_size,
             collate_fn=custom_collate_fn,
             shuffle=False,
             drop_last=False,

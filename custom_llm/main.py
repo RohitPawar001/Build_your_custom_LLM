@@ -45,8 +45,6 @@ def interactive_generation(model, tokenizer, device):
 
 def train_custom_model():
     """Train a custom model from scratch"""
-    print("Initializing the model...")
-    
     # Initialize models and components
     model = LLMModel(model_arguments)
     base_model = LLMModel(model_arguments)
@@ -59,10 +57,13 @@ def train_custom_model():
     
     tokenizer = tiktoken.get_encoding("gpt2")
     optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
-    num_epochs = 1
+    
 
     # Pre-training phase
-    data_file = input("Enter the file path/URL for pre-training data: ")
+    model_name = input("Enter the name of the model you want to build: ")
+    data_file = input("Enter the file path/URL for pre-training data (for example: https://www.gutenberg.org/files/11/11-0.txt/ or /data/train.txt): ")
+    batch_size = int(input("Enter the batch size for pre-training: "))
+    num_epochs = int(input("Enter the number of epochs for pre-training: "))
     data = download_and_load_file(data_file)
     print("Data file downloaded")
     
@@ -71,7 +72,7 @@ def train_custom_model():
     train_loader = create_dataloader(
         train_data,
         tokenizer,
-        batch_size=2,
+        batch_size=batch_size,
         max_length=model_arguments["context_length"],
         stride=model_arguments["context_length"],
         drop_last=True,
@@ -82,7 +83,7 @@ def train_custom_model():
     val_loader = create_dataloader(
         val_data,
         tokenizer,
-        batch_size=2,
+        batch_size=batch_size,
         max_length=model_arguments["context_length"],
         stride=model_arguments["context_length"],
         drop_last=False,
@@ -98,16 +99,23 @@ def train_custom_model():
     )
     print("Pre-training complete")
 
-    save_pretrained_model(model, optimizer)
+    save_pretrained_model(model, optimizer, model_name)
     print("Pre-trained model saved")
     
     # Fine-tuning phase
+    print()
+    print("-------------------------------------------------")
+    print("Supervised fine-tuning the model...")
+    print("-------------------------------------------------")
+    print()
     print("Loading pre-trained model for fine-tuning...")
-    model = load_pretrained_model(base_model, device)
+
+    model = load_pretrained_model(base_model, device, model_name)
     model = model.to(device)
+    num_epochs = int(input("Enter the number of epochs for fine-tuning: "))
     
     print("Preparing model for fine-tuning...")
-    sft_data_file = input("Enter the file path/URL for fine-tuning data: ")
+    sft_data_file = input("Enter the file path/URL for fine-tuning data (for example: https://www.gutenberg.org/files/11/11-0.json/ or /data/instruction_dataset.json): ")
     sft_data = download_and_load_file(sft_data_file)
     print("Fine-tuning data downloaded")
     
@@ -134,24 +142,101 @@ def train_custom_model():
     
     print("Starting supervised fine-tuning...")
     model = sft.train()
-    save_fine_tunned_model(model, optimizer)
+    save_fine_tunned_model(model, optimizer, model_name)
     print("Fine-tuned model has been saved")
+
+    print()
+    print("-------------------------------------------------")
+    print("Supervised fine-tuning complete model is ready for inference")
+    print("-------------------------------------------------")
     
-    return model
+    return model, model_name
 
 
-def load_existing_model():
+def load_existing_model(model_loader, model_name):
     """Load an existing fine-tuned model"""
     base_model = LLMModel(model_arguments)
     device = get_device()
     print(f"Using device: {device}")
     
     base_model = base_model.to(device)
-    model = load_fine_tunned_model(base_model, device)
+    model = model_loader(base_model, device, model_name)
     model = model.to(device)
-    print("Fine-tuned model loaded")
+    print("Model loaded")
     
     return model
+
+
+def finetune_pretrained_model():
+    """Fine-tune an existing pretrained model"""
+    device = get_device()
+    print(f"Using device: {device}")
+    
+    # Get model name and load pretrained model
+    model_name = input("Enter the name of the pretrained model to fine-tune: ")
+    base_model = LLMModel(model_arguments)
+    base_model = base_model.to(device)
+    
+    print("Loading pretrained model...")
+    model = load_pretrained_model(base_model, device, model_name)
+    model = model.to(device)
+    print("Pretrained model loaded successfully")
+    
+    tokenizer = tiktoken.get_encoding("gpt2")
+    optimizer = torch.optim.AdamW(model.parameters(), lr=0.0004, weight_decay=0.1)
+    
+    # Fine-tuning setup
+    print()
+    print("-------------------------------------------------")
+    print("Setting up fine-tuning...")
+    print("-------------------------------------------------")
+    
+    sft_data_file = input("Enter the file path/URL for fine-tuning data (for example: https://www.gutenberg.org/files/11/11-0.json/ or /data/instruction_dataset.json): ")
+    batch_size = int(input("Enter the batch size for fine-tuning: "))
+    num_epochs = int(input("Enter the number of epochs for fine-tuning: "))
+    
+    sft_data = download_and_load_file(sft_data_file)
+    print("Fine-tuning data downloaded")
+    
+    sft_train_data, sft_test_data, sft_val_data = partition_data(sft_data)
+    
+    train_dataloader, val_dataloader, test_dataloader = SFTDataloaders(
+        train_data=sft_train_data, 
+        val_data=sft_val_data, 
+        test_data=sft_test_data, 
+        tokenizer=tokenizer,
+        batch_size=batch_size,
+        device=device
+    ).data_loaders()
+    
+    sft = FineTuneModel(
+        model=model,
+        train_loader=train_dataloader,
+        val_loader=val_dataloader,
+        optimizer=optimizer,
+        device=device,
+        num_epochs=num_epochs,
+        tokenizer=tokenizer,
+        val_data=sft_val_data,
+    )
+    
+    print("Starting supervised fine-tuning...")
+    model = sft.train()
+    
+    # Save the fine-tuned model
+    finetuned_model_name = input("Enter a name for the fine-tuned model (or press Enter to use original name): ")
+    if not finetuned_model_name.strip():
+        finetuned_model_name = model_name
+    
+    save_fine_tunned_model(model, optimizer, finetuned_model_name)
+    print("Fine-tuned model has been saved")
+
+    print()
+    print("-------------------------------------------------")
+    print("Fine-tuning complete! Model is ready for inference")
+    print("-------------------------------------------------")
+    
+    return model, finetuned_model_name
 
 
 def main():
@@ -159,26 +244,56 @@ def main():
     tokenizer = tiktoken.get_encoding("gpt2")
     device = get_device()
     
+    print("-------------------------------------------------")
     print("Welcome to the LLM Training and Inference System!")
-    print("1. Use existing fine-tuned model")
-    print("2. Train a custom model from scratch")
+    print("-------------------------------------------------")
+    print()
+    print("1. Use pretrained model")
+    print("2. Use existing fine-tuned model")
+    print("3. Train a custom model from scratch")
+    print("4. Fine-tune an existing pretrained model")
     
     try:
-        usecase = int(input("Please select an option (1 or 2): "))
+        usecase = int(input("Please select an option (1, 2, 3, or 4): "))
         
         if usecase == 1:
-            model = load_existing_model()
+            print()
+            print("-------------------------------------------------")
+            print("Loading pretrained model...")
+            print("-------------------------------------------------")
+            model_name = input("Enter the name of the pretrained model to load: ")
+            model = load_existing_model(load_pretrained_model, model_name)
+            interactive_generation(model, tokenizer, device)
+
+        elif usecase == 2:
+            print()
+            print("-------------------------------------------------")
+            print("Loading fine-tuned model...")
+            print("-------------------------------------------------")
+            model_name = input("Enter the name of the fine-tuned model to load: ")
+            model = load_existing_model(load_fine_tunned_model, model_name)
             interactive_generation(model, tokenizer, device)
             
-        elif usecase == 2:
-            model = train_custom_model()
-            print("Loading fine-tuned model for inference...")
+        elif usecase == 3:
+            print()
+            print("-------------------------------------------------")
+            print("Training custom model...")
+            print("-------------------------------------------------")
+            model, model_name = train_custom_model()
             base_model = LLMModel(model_arguments).to(device)
-            model = load_fine_tunned_model(base_model, device)
+            model = load_fine_tunned_model(base_model, device, model_name)
+            interactive_generation(model, tokenizer, device)
+            
+        elif usecase == 4:
+            print()
+            print("-------------------------------------------------")
+            print("Fine-tuning pretrained model...")
+            print("-------------------------------------------------")
+            model, model_name = finetune_pretrained_model()
             interactive_generation(model, tokenizer, device)
             
         else:
-            raise ValueError("Invalid option selected. Please choose 1 or 2.")
+            raise ValueError("Invalid option selected. Please choose 1, 2, 3, or 4.")
             
     except ValueError as e:
         print(f"Error: {e}")

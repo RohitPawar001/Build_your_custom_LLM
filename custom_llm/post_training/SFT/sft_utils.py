@@ -8,9 +8,16 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 
-
+"""
+    This file contains the implementation of the format_input and custom_collate_fn functions.
+    this is the main utils for the custom LLM.
+"""
 
 def format_input(entry):
+    """
+    This function formats the input for the custom LLM.
+    It takes in the entry and returns the formatted input.
+    """
     instruction_text = (
         f"Below is an instruction that describes a task. "
         f"Write a response that appropriately complates the request."
@@ -33,6 +40,11 @@ def custom_collate_fn(
         allowed_max_length=None,
         device="cpu"
 ):
+    """
+    This function collates the batch for the custom LLM.
+    It takes in the batch, pad token id, ignore index, allowed max length, and device.
+    It then pads and stacks the inputs and targets.
+    """
     # Unzip the batch into inputs and targets
     input_batch, target_batch = zip(*batch)
     
@@ -74,13 +86,20 @@ def custom_collate_fn(
 
 
 
-def save_fine_tunned_model(model, optimizer):
-    if os.path.exists(os.path.join(os.getcwd(),"fine_tunned_model_and_optimizer.pth")):
-        os.remove("fine_tunned_model_and_optimizer.pth")
+def save_fine_tunned_model(model, optimizer,model_name):
+    
+    """
+    This function saves the fine-tuned model and optimizer.
+    It takes in the model and optimizer.
+    It then saves the model and optimizer.
+    """
+
+    if os.path.exists(os.path.join(os.getcwd(),f"instruct_{model_name}.pth")):
+        os.remove(f"instruct_{model_name}.pth")
 
     torch.save({
         "model_state_dict": model.state_dict(),
         "optimizer_state_dict": optimizer.state_dict()
     },
-    "fine_tunned_model_and_optimizer.pth")
+    f"instruct_{model_name}.pth")
 

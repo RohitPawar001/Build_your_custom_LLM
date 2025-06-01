@@ -8,7 +8,17 @@ from .sft_utils import format_input
 from pretrain.train import train_model
 
 
+"""
+    This file contains the implementation of the FineTuneModel class.
+    
+"""
+
 class FineTuneModel:
+    """
+    This class implements the FineTuneModel.
+    It takes in the model, train loader, val loader, optimizer, device, num epochs, tokenizer, val data, eval freqs, and eval iter.
+    It then initializes the model, train loader, val loader, optimizer, device, num epochs, tokenizer, val data, eval freqs, and eval iter.
+    """
     def __init__(self,
                  model,
                  train_loader,

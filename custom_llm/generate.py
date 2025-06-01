@@ -8,7 +8,10 @@ from utils import (
 )
 
 
-
+"""
+    This file contains the implementation of the generate function.
+    this is the main generate function for the custom LLM.
+"""
 
 
 def generate(model,
@@ -18,6 +21,13 @@ def generate(model,
              temperature=0.0,
              top_k=None,
              eos_id=None):
+    
+    """
+    This function generates the text for the custom LLM.
+    It takes in the model, idx, max new tokens, context size, temperature, top k, and eos id.
+    It then generates the text.
+    """
+
     for _ in range(max_ne_token):
         idx_cond = idx[:, -context_size:]
         with torch.no_grad():
@@ -50,6 +60,12 @@ def generate_and_print_simple(model,
                               tokenizer,
                               device,
                               start_context):
+    
+    """
+    This function generates the text for the custom LLM.
+    It takes in the model, tokenizer, device, and start context.
+    It then generates the text.
+    """
     model.eval()
     context_size = model.pos_emb.weight.shape[0]
     encoded = text_to_token_ids(start_context, tokenizer).to(device)
@@ -69,6 +85,12 @@ def generate_text_simple(model,
                          idx,
                          max_new_tokens,
                          context_size):
+    
+    """
+    This function generates the text for the custom LLM.
+    It takes in the model, idx, max new tokens, and context size.
+    It then generates the text.
+    """
     idx= idx.to("cuda")
     for _ in range(max_new_tokens):
         idx_cond = idx[:, -context_size:]

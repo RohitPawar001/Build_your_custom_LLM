@@ -11,6 +11,12 @@ from utils import (
     evaluate_model
 )
 
+
+"""
+    This file contains the implementation of the train_model function.
+    this is the main training function for the custom LLM.
+"""
+
 def train_model(
         model,
         train_loader,
@@ -23,6 +29,11 @@ def train_model(
         start_context,
         tokenizer
 ):
+    """
+    This function trains the model.
+    It takes in the model, train loader, val loader, optimizer, device, num epochs, eval freqs, eval iter, start context, and tokenizer.
+    It then trains the model.
+    """
     train_losses, val_losses, track_token_seen = [], [], []
     token_seen, global_step = 0, -1 
     

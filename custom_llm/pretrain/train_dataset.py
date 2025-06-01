@@ -6,9 +6,17 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 
 
-
+"""
+    This file contains the implementation of the GPTDataset class.
+    this is the main dataset for the custom LLM.
+"""
 
 class GPTDataset(Dataset):
+    """
+    This class implements the GPTDataset.
+    It takes in the data, tokenizer, max length, and stride.
+    It then initializes the input ids and target ids.
+    """
     def __init__(self, data, tokenizer, max_length, stride):
         self.input_ids = []
         self.target_ids = []

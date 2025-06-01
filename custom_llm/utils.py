@@ -11,12 +11,22 @@ from pretrain.train_dataset import GPTDataset
 
 
 def get_device():
+    """
+    This function returns the device.
+    It takes in no arguments.
+    It then returns the device.
+    """
     device = "cuda" if torch.cuda.is_available() else "cpu"
     return device
 
 
 
 def calc_loss_per_batch(input_batch, target_batch, model, device):
+    """
+    This function calculates the loss per batch.
+    It takes in the input batch, target batch, model, and device.
+    It then returns the loss.
+    """
     input_batch = input_batch.to(device)
     target_batch = target_batch.to(device)
     logits = model(input_batch)
@@ -27,6 +37,11 @@ def calc_loss_per_batch(input_batch, target_batch, model, device):
 
 
 def calc_loss_loader(data_loader, model, device, num_batches=None):
+    """
+    This function calculates the loss per loader.
+    It takes in the data loader, model, device, and num batches.
+    It then returns the loss.
+    """
     total_loss = 0
     if len(data_loader) == 0:
         return float("nan")
@@ -44,6 +59,11 @@ def calc_loss_loader(data_loader, model, device, num_batches=None):
     return total_loss/num_batches
 
 def evaluate_model(model, train_loader, val_loader, device, eval_iter):
+    """
+    This function evaluates the model.
+    It takes in the model, train loader, val loader, device, and eval iter.
+    It then returns the train loss and val loss.
+    """
     model.eval()
     with torch.no_grad():
         train_loss = calc_loss_loader(
@@ -123,15 +143,15 @@ def token_ids_to_text(token_ids, tokenizer):
     return tokenizer.decode(flat.tolist())
 
 
-def save_pretrained_model(model, optimizer):
-    if os.path.exists(os.path.join(os.getcwd(),"pretrained_model_and_optimizer.pth")):
-        os.remove("pretrained_model_and_optimizer.pth")
+def save_pretrained_model(model, optimizer, model_name):
+    if os.path.exists(os.path.join(os.getcwd(),f"{model_name}_pretrained_model.pth")):
+        os.remove(f"{model_name}_pretrained_model.pth")
 
     torch.save({
     "model_state_dict":model.state_dict(),
     "optimizer_state_dict":optimizer.state_dict()
     },
-    "pretrained_model_and_optimizer.pth")
+    f"{model_name}_pretrained_model.pth")
     print("pretrained model has been saved successfully")
 
 def partition_data(data):
@@ -148,24 +168,24 @@ def partition_data(data):
     return train_data, test_data, val_data
 
 
-def load_fine_tunned_model(model, device):
-    if os.path.exists(os.path.join(os.getcwd(),"fine_tunned_model_and_optimizer.pth")):
-        checkpoint = torch.load("fine_tunned_model_and_optimizer.pth", map_location=device)
+def load_fine_tunned_model(model, device, model_name):
+    if os.path.exists(os.path.join(os.getcwd(),f"{model_name}_fine_tunned_model.pth")):
+        checkpoint = torch.load(f"{model_name}_fine_tunned_model.pth", map_location=device)
         model.load_state_dict(checkpoint["model_state_dict"])
         model = model.to(device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=5e-4, weight_decay=0.1)
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         return model
     else:
-        raise "There is no finetunned model you need to finetunne the model"
+        raise FileNotFoundError("There is no finetunned model you need to finetunne the model")
 
-def load_pretrained_model(model, device):
-    if os.path.exists(os.path.join(os.getcwd(),"pretrained_model_and_optimizer.pth")):
-        checkpoint = torch.load("pretrained_model_and_optimizer.pth", map_location=device)
+def load_pretrained_model(model, device, model_name):
+    if os.path.exists(os.path.join(os.getcwd(),f"{model_name}_pretrained_model.pth")):
+        checkpoint = torch.load(f"{model_name}_pretrained_model.pth", map_location=device)
         model.load_state_dict(checkpoint["model_state_dict"])
         model = model.to(device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=5e-4, weight_decay=0.1)
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         return model
     else:
-        raise "There is no pretraind model you need to train the model"
+        raise FileNotFoundError("There is no pretraind model you need to train the model")
