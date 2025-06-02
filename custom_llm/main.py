@@ -62,10 +62,10 @@ def train_custom_model():
     # Pre-training phase
     model_name = input("Enter the name of the model you want to build: ")
     data_file = input("Enter the file path/URL for pre-training data (for example: https://www.gutenberg.org/files/11/11-0.txt/ or /data/train.txt): ")
+    data = download_and_load_file(data_file)
+    print("Data file downloaded/ loaded")
     batch_size = int(input("Enter the batch size for pre-training: "))
     num_epochs = int(input("Enter the number of epochs for pre-training: "))
-    data = download_and_load_file(data_file)
-    print("Data file downloaded")
     
     train_data, test_data, val_data = partition_data(data)
     
@@ -95,7 +95,7 @@ def train_custom_model():
     train_losses, val_losses, tokens_seen = train_model(
         model, train_loader, val_loader, optimizer, device, 
         num_epochs, eval_freqs=5, eval_iter=5,
-        start_context="Every effort moves you", tokenizer=tokenizer
+        start_context="The object of our misery", tokenizer=tokenizer
     )
     print("Pre-training complete")
 
@@ -112,12 +112,13 @@ def train_custom_model():
 
     model = load_pretrained_model(base_model, device, model_name)
     model = model.to(device)
-    num_epochs = int(input("Enter the number of epochs for fine-tuning: "))
+    
     
     print("Preparing model for fine-tuning...")
     sft_data_file = input("Enter the file path/URL for fine-tuning data (for example: https://www.gutenberg.org/files/11/11-0.json/ or /data/instruction_dataset.json): ")
     sft_data = download_and_load_file(sft_data_file)
-    print("Fine-tuning data downloaded")
+    print("Fine-tuning data downloaded/ loaded")
+    num_epochs = int(input("Enter the number of epochs for fine-tuning: "))
     
     sft_train_data, sft_test_data, sft_val_data = partition_data(sft_data)
     
@@ -192,11 +193,12 @@ def finetune_pretrained_model():
     print("-------------------------------------------------")
     
     sft_data_file = input("Enter the file path/URL for fine-tuning data (for example: https://www.gutenberg.org/files/11/11-0.json/ or /data/instruction_dataset.json): ")
+    sft_data = download_and_load_file(sft_data_file)
+    print("Fine-tuning data downloaded/loaded")
     batch_size = int(input("Enter the batch size for fine-tuning: "))
     num_epochs = int(input("Enter the number of epochs for fine-tuning: "))
     
-    sft_data = download_and_load_file(sft_data_file)
-    print("Fine-tuning data downloaded")
+    
     
     sft_train_data, sft_test_data, sft_val_data = partition_data(sft_data)
     

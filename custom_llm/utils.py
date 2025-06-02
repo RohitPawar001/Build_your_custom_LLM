@@ -169,8 +169,8 @@ def partition_data(data):
 
 
 def load_fine_tunned_model(model, device, model_name):
-    if os.path.exists(os.path.join(os.getcwd(),f"{model_name}_fine_tunned_model.pth")):
-        checkpoint = torch.load(f"{model_name}_fine_tunned_model.pth", map_location=device)
+    if os.path.exists(os.path.join(os.getcwd(),f"instruct_{model_name}.pth")):
+        checkpoint = torch.load(f"instruct_{model_name}.pth", map_location=device)
         model.load_state_dict(checkpoint["model_state_dict"])
         model = model.to(device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=5e-4, weight_decay=0.1)
